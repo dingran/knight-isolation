@@ -20,8 +20,9 @@ from collections import namedtuple
 from isolation import Board
 from sample_players import (RandomPlayer, open_move_score,
                             improved_score, center_score)
-from game_agent import (MinimaxPlayer, AlphaBetaPlayer, custom_score,
-                        custom_score_2, custom_score_3)
+# from game_agent import (MinimaxPlayer, AlphaBetaPlayer, custom_score,
+#                         custom_score_2, custom_score_3)
+import game_agent
 
 NUM_MATCHES = 5  # number of matches against each opponent
 TIME_LIMIT = 150  # number of milliseconds before timeout
@@ -48,9 +49,9 @@ def play_round(cpu_agent, test_agents, win_counts, num_matches):
     forfeit_count = 0
     for _ in range(num_matches):
 
-        games = sum([[Board(cpu_agent.player, agent.player),
-                      Board(agent.player, cpu_agent.player)]
-                    for agent in test_agents], [])
+        games = sum(
+            [[Board(cpu_agent.player, agent.player), Board(agent.player, cpu_agent.player)] for agent in test_agents],
+            [])
 
         # initialize all games with a random move and response
         for _ in range(2):
@@ -79,23 +80,25 @@ def update(total_wins, wins):
 
 def play_matches(cpu_agents, test_agents, num_matches):
     """Play matches between the test agent and each cpu_agent individually. """
+
+    N_test_agents = len(test_agents)
+
     total_wins = {agent.player: 0 for agent in test_agents}
     total_timeouts = 0.
     total_forfeits = 0.
     total_matches = 2 * num_matches * len(cpu_agents)
 
-    print("\n{:^9}{:^13}{:^13}{:^13}{:^13}{:^13}".format(
-        "Match #", "Opponent", test_agents[0].name, test_agents[1].name,
-        test_agents[2].name, test_agents[3].name))
-    print("{:^9}{:^13} {:^5}| {:^5} {:^5}| {:^5} {:^5}| {:^5} {:^5}| {:^5}"
-          .format("", "", *(["Won", "Lost"] * 4)))
+    template_names = "\n{:^9}{:^13}" + "{:^13}" * N_test_agents
+    print(template_names.format("Match #", "Opponent", *[x.name for x in test_agents]))
+
+    template_win_lost = "{:^9}{:^13}" + " {:^5}| {:^5}" * N_test_agents
+    print(template_win_lost.format("", "", *(["Won", "Lost"] * N_test_agents)))
 
     for idx, agent in enumerate(cpu_agents):
-        wins = {test_agents[0].player: 0,
-                test_agents[1].player: 0,
-                test_agents[2].player: 0,
-                test_agents[3].player: 0,
-                agent.player: 0}
+        wins = {agent.player: 0}
+
+        for i in range(N_test_agents):
+            wins[test_agents[i].player] = 0
 
         print("{!s:^9}{:^13}".format(idx + 1, agent.name), end="", flush=True)
 
@@ -106,14 +109,12 @@ def play_matches(cpu_agents, test_agents, num_matches):
         _total = 2 * num_matches
         round_totals = sum([[wins[agent.player], _total - wins[agent.player]]
                             for agent in test_agents], [])
-        print(" {:^5}| {:^5} {:^5}| {:^5} {:^5}| {:^5} {:^5}| {:^5}"
-              .format(*round_totals))
+        template_results = " {:^5}| {:^5}" * N_test_agents
+        print(template_results.format(*round_totals))
 
-    print("-" * 74)
-    print("{:^9}{:^13}{:^13}{:^13}{:^13}{:^13}\n".format(
-        "", "Win Rate:",
-        *["{:.1f}%".format(100 * total_wins[a.player] / total_matches)
-          for a in test_agents]
+    print("-" * (9 + 13 + 13 * N_test_agents))
+    print(("{:^9}{:^13}" + "{:^13}" * N_test_agents + "\n").format(
+        "", "Win Rate:", *["{:.1f}%".format(100 * total_wins[a.player] / total_matches) for a in test_agents]
     ))
 
     if total_timeouts:
@@ -126,27 +127,63 @@ def play_matches(cpu_agents, test_agents, num_matches):
                "legal moves available to play.\n").format(total_forfeits))
 
 
-def main():
+import functools
 
+
+def main():
     # Define two agents to compare -- these agents will play from the same
     # starting position against the same adversaries in the tournament
     test_agents = [
-        Agent(AlphaBetaPlayer(score_fn=improved_score), "AB_Improved"),
-        Agent(AlphaBetaPlayer(score_fn=custom_score), "AB_Custom"),
-        Agent(AlphaBetaPlayer(score_fn=custom_score_2), "AB_Custom_2"),
-        Agent(AlphaBetaPlayer(score_fn=custom_score_3), "AB_Custom_3")
+        # Agent(game_agent.AlphaBetaPlayer(score_fn=game_agent.score_look_ahead_agg), "LA_opp"),
+
+        Agent(game_agent.AlphaBetaPlayer(score_fn=improved_score), "AB_Improved"),
+        # Agent(game_agent.AlphaBetaPlayer(score_fn=game_agent.custom_score), "AB_Custom"),
+        # Agent(game_agent.AlphaBetaPlayer(score_fn=game_agent.custom_score_2), "AB_Custom_2"),
+        # Agent(game_agent.AlphaBetaPlayer(score_fn=game_agent.custom_score_3), "AB_Custom_3")
+
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_differential_open_move, aggressiveness=0.0)), "Diff_Agg_0"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_differential_open_move, aggressiveness=0.5)), "Diff_Agg_0.5"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_differential_open_move, aggressiveness=1.0)), "Diff_Agg_1"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_differential_open_move, aggressiveness=2.5)), "Diff_Agg_2.5"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_differential_open_move, aggressiveness=1e6)), "Diff_Agg_inf"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_time_variant_differential_open_move, var=1)), "TV_Diff_V1"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_time_variant_differential_open_move, var=2)), "TV_Diff_V2"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_look_ahead_differential_move, aggressiveness=0.0)), "LA_Agg_0"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_look_ahead_differential_move, aggressiveness=0.5)),
+            "LA_Agg_0.5"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_look_ahead_differential_move, aggressiveness=1.0)), "LA_Agg_1"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_look_ahead_differential_move, aggressiveness=2.0)), "LA_Agg_2"),
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=functools.partial(game_agent.score_look_ahead_differential_move, aggressiveness=1e6)),
+            "LA_Agg_inf"),
+
+        Agent(game_agent.AlphaBetaPlayer(
+            score_fn=game_agent.score_wall_corner_aware_differential_open_move), "Wall_and_Corner"),
+
     ]
 
     # Define a collection of agents to compete against the test agents
     cpu_agents = [
-        Agent(RandomPlayer(), "Random"),
-        Agent(MinimaxPlayer(score_fn=open_move_score), "MM_Open"),
-        Agent(MinimaxPlayer(score_fn=center_score), "MM_Center"),
-        Agent(MinimaxPlayer(score_fn=improved_score), "MM_Improved"),
-        Agent(AlphaBetaPlayer(score_fn=open_move_score), "AB_Open"),
-        Agent(AlphaBetaPlayer(score_fn=center_score), "AB_Center"),
-        Agent(AlphaBetaPlayer(score_fn=improved_score), "AB_Improved")
+        # Agent(RandomPlayer(), "Random"),
+        # Agent(game_agent.MinimaxPlayer(score_fn=open_move_score), "MM_Open"),
+        # Agent(game_agent.MinimaxPlayer(score_fn=center_score), "MM_Center"),
+        # Agent(game_agent.MinimaxPlayer(score_fn=improved_score), "MM_Improved"),
+        # Agent(game_agent.AlphaBetaPlayer(score_fn=open_move_score), "AB_Open"),
+        # Agent(game_agent.AlphaBetaPlayer(score_fn=center_score), "AB_Center"),
+        Agent(game_agent.AlphaBetaPlayer(score_fn=improved_score), "AB_Improved")
     ]
+    cpu_agents = cpu_agents[::-1]
 
     print(DESCRIPTION)
     print("{:^74}".format("*************************"))

@@ -1,0 +1,24 @@
+This script evaluates the performance of the custom_score evaluation
+function against a baseline agent using alpha-beta search and iterative
+deepening (ID) called `AB_Improved`. The three `AB_Custom` agents use
+ID and alpha-beta search with the custom_score functions defined in
+game_agent.py.
+
+                        *************************
+                             Playing Matches
+                        *************************
+
+ Match #   Opponent    AB_Improved  Diff_Agg_0  Diff_Agg_0.5  Diff_Agg_1  Diff_Agg_2.5 Diff_Agg_inf  TV_Diff_V1   TV_Diff_V2    LA_Agg_0    LA_Agg_0.5    LA_Agg_1     LA_Agg_2    LA_Agg_inf  Wall_and_Corner
+                        Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost
+    1     AB_Improved   97  |  103   91  |  109   97  |  103   104 |  96    93  |  107   98  |  102   101 |  99    92  |  108   96  |  104   105 |  95    111 |  89    99  |  101   103 |  97    88  |  112
+    2      AB_Center    116 |  84    105 |  95    116 |  84    108 |  92    106 |  94    111 |  89    106 |  94    98  |  102   111 |  89    109 |  91    110 |  90    111 |  89    106 |  94    101 |  99
+    3       AB_Open     103 |  97    95  |  105   94  |  106   104 |  96    102 |  98    104 |  96    95  |  105   104 |  96    104 |  96    118 |  82    112 |  88    116 |  84    107 |  93    91  |  109
+    4     MM_Improved   147 |  53    141 |  59    138 |  62    143 |  57    147 |  53    139 |  61    152 |  48    141 |  59    139 |  61    157 |  43    167 |  33    148 |  52    147 |  53    143 |  57
+    5      MM_Center    178 |  22    169 |  31    177 |  23    178 |  22    175 |  25    184 |  16    167 |  33    176 |  24    179 |  21    176 |  24    179 |  21    172 |  28    182 |  18    174 |  26
+    6       MM_Open     154 |  46    148 |  52    152 |  48    150 |  50    146 |  54    154 |  46    154 |  46    152 |  48    153 |  47    159 |  41    159 |  41    154 |  46    164 |  36    145 |  55
+    7       Random      178 |  22    185 |  15    186 |  14    182 |  18    188 |  12    190 |  10    185 |  15    187 |  13    176 |  24    189 |  11    183 |  17    178 |  22    181 |  19    190 |  10
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+           Win Rate:      69.5%        66.7%        68.6%        69.2%        68.4%        70.0%        68.6%        67.9%        68.4%        72.4%        72.9%        69.9%        70.7%        66.6%
+
+
+There were 10.0 timeouts during the tournament -- make sure your agent handles search timeout correctly, and consider increasing the timeout margin for your agent.

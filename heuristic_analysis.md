@@ -9,8 +9,6 @@ The benchmark players are defined in [sample_players.py](sample_players.py)
 
 The tournament is run by [tournament.py](tournament.py) (a number of revisions are made to the original file in order to run more than three custom players)
 
-Github: https://github.com/dingran1019/aind-2017may/tree/master/Isolation
-
 ## Benchmark players
 
   * **Random**: player that selects next move randomly without tree search
